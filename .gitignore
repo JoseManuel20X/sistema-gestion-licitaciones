@@ -1,0 +1,32 @@
+# Compilación .NET
+bin/
+obj/
+out/
+artifacts/
+
+# Archivos de usuario de IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Resultados de pruebas y cobertura
+TestResults/
+coverage/
+*.trx
+coverage.*.xml
+*.coverage
+
+# Secretos y configuración local
+*.env
+.env*
+appsettings.*.Local.json
+k8s/app-secret.yaml
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
+
+# Sesión local de herramientas
+.claude/
