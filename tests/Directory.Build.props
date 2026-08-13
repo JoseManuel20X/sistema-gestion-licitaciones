@@ -1,0 +1,20 @@
+<Project>
+
+  <!-- Hereda la configuración común de la raíz de la solución. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Las pruebas no son API pública: no se genera documentación XML. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!--
+      CA1707: los nombres de prueba siguen la convención
+      Metodo_Escenario_ResultadoEsperado, cuyos guiones bajos separan las tres
+      partes y hacen legible el informe de ejecución. La regla se relaja solo
+      aquí; en el código de producción sigue activa.
+    -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+</Project>

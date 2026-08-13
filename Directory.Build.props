@@ -1,0 +1,30 @@
+<Project>
+
+  <!--
+    Propiedades comunes a todos los proyectos de la solución.
+    Centralizarlas evita repetir configuración y garantiza que el análisis
+    estático exigido por la integración continua se aplique de forma uniforme.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Calidad: el flujo de CI falla ante cualquier advertencia evitable. -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!--
+      CS1591 y CS1573: el enunciado §6.4 pide documentación XML en los miembros
+      públicos relevantes, no en todos ni en cada parámetro. Se documenta lo que
+      aporta contexto y se omite lo que solo repetiría el nombre del símbolo.
+    -->
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+  </PropertyGroup>
+
+</Project>

@@ -17,6 +17,16 @@ csharp_style_expression_bodied_properties = true:suggestion
 csharp_prefer_braces = true:warning
 dotnet_style_require_accessibility_modifiers = always:warning
 
+# El vocabulario del dominio se escribe en español (plan-xp.md, estándares de
+# código), por lo que los sufijos que exigen algunas reglas de análisis en inglés
+# no aplican. Se desactivan de forma explícita y justificada, no globalmente.
+dotnet_diagnostic.CA1710.severity = none
+
+# Las migraciones las genera Entity Framework Core: no se editan a mano y no
+# tiene sentido exigirles el estilo del código escrito por personas.
+[**/Migraciones/*.cs]
+generated_code = true
+
 [*.{json,yaml,yml}]
 indent_size = 2
 
