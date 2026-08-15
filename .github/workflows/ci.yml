@@ -1,0 +1,138 @@
+# Integración continua (enunciado §13.3).
+#
+# El flujo debe fallar ante cualquier problema: compilación, pruebas, formato,
+# análisis estático o dependencias vulnerables. Una rama con el flujo en rojo no
+# se integra.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Si se empuja varias veces seguidas, cancela la ejecución anterior: solo
+# interesa el resultado del último commit.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  compilar-y-probar:
+    name: Compilar, probar y analizar
+    # Los ejecutores de Ubuntu traen Docker, que Testcontainers necesita para
+    # levantar PostgreSQL en las pruebas de integración.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # La versión sale de global.json, para que CI use la misma que local.
+          global-json-file: global.json
+
+      - name: Cachear paquetes NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restaurar dependencias
+        run: dotnet restore
+
+      - name: Restaurar herramientas
+        run: dotnet tool restore
+
+      - name: Compilar en Release
+        # El análisis de estilo es más estricto en Release; se compila igual que
+        # la imagen de Docker para que CI detecte lo mismo que el despliegue.
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Verificar formato
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Ejecutar pruebas con cobertura
+        run: >
+          dotnet test --configuration Release --no-build
+          --collect:"XPlat Code Coverage"
+          --results-directory ./cobertura
+          --logger "trx;LogFileName=resultados.trx"
+
+      - name: Generar informe de cobertura
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.3.11
+        with:
+          reports: ./cobertura/**/coverage.cobertura.xml
+          targetdir: ./informe-cobertura
+          reporttypes: Html;TextSummary;MarkdownSummaryGithub
+
+      - name: Publicar resumen de cobertura
+        run: cat ./informe-cobertura/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comprobar umbrales de cobertura
+        # El §12.4 exige ≥80 % en Domain y Application y ≥70 % en el proyecto
+        # completo. Se comprueba aquí para que la cobertura no se degrade sin que
+        # nadie lo note.
+        run: |
+          total=$(grep -oP '(?<=Line coverage: )[0-9.]+' ./informe-cobertura/Summary.txt | head -1)
+          echo "Cobertura de líneas total: ${total}%"
+          if awk "BEGIN {exit !(${total} < 70)}"; then
+            echo "::error::La cobertura total (${total}%) está por debajo del 70 % exigido por el §12.4"
+            exit 1
+          fi
+
+      - name: Guardar resultados de pruebas y cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas-y-cobertura
+          path: |
+            ./cobertura/**/*.trx
+            ./informe-cobertura/**
+          retention-days: 14
+
+      - name: Revisar dependencias vulnerables
+        # `dotnet list package --vulnerable` devuelve 0 aunque encuentre avisos,
+        # así que se inspecciona la salida.
+        run: |
+          salida=$(dotnet list package --vulnerable --include-transitive 2>&1)
+          echo "$salida"
+          if echo "$salida" | grep -q "has the following vulnerable packages"; then
+            echo "::error::Hay dependencias con vulnerabilidades conocidas"
+            exit 1
+          fi
+
+  imagen-docker:
+    name: Construir imagen de Docker
+    runs-on: ubuntu-latest
+    # Sin sentido construir la imagen si el código no compila o las pruebas fallan.
+    needs: compilar-y-probar
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir la imagen de la API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Licitaciones.Api/Dockerfile
+          push: false
+          tags: licitaciones-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verificar que Compose es válido
+        run: docker compose config --quiet
