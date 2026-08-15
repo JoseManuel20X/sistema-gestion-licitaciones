@@ -63,6 +63,24 @@ public sealed class BaseDatosFixture : IAsyncLifetime
             RESTART IDENTITY CASCADE;
             """);
     }
+
+    /// <summary>
+    /// Deja la base limpia pero con los datos iniciales del §11: niveles de
+    /// aprobación y tipo de cambio activo.
+    /// </summary>
+    /// <remarks>
+    /// Necesario para las pruebas de la API, que se apoyan en la semilla igual
+    /// que la aplicación real. No se hace dentro de <see cref="LimpiarAsync"/>
+    /// porque las pruebas de persistencia sí necesitan partir de tablas vacías
+    /// para verificar restricciones sobre datos que ellas mismas insertan.
+    /// </remarks>
+    public async Task LimpiarYSembrarAsync(IReloj reloj)
+    {
+        await LimpiarAsync();
+
+        await using var contexto = CrearContexto();
+        await DatosSemilla.SembrarAsync(contexto, reloj);
+    }
 }
 
 /// <summary>Agrupa las pruebas que comparten el mismo contenedor de PostgreSQL.</summary>
