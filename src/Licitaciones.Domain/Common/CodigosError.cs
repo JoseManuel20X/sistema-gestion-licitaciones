@@ -45,6 +45,7 @@ public static class CodigosError
     public const string TipoCambioNoPositivo = "TIPO_CAMBIO_NO_POSITIVO";
     public const string TipoCambioNoEncontrado = "TIPO_CAMBIO_NO_ENCONTRADO";
     public const string SinTipoCambioActivo = "TIPO_CAMBIO_SIN_ACTIVO";
+    public const string TipoCambioActivoNoEliminable = "TIPO_CAMBIO_ACTIVO_NO_ELIMINABLE";
 
     // Concurrencia e integridad
     public const string ConflictoConcurrencia = "CONFLICTO_CONCURRENCIA";

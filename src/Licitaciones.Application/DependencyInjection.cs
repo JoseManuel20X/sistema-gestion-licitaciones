@@ -2,6 +2,7 @@ using Licitaciones.Application.Aprobaciones;
 using Licitaciones.Application.Licitaciones;
 using Licitaciones.Application.Ofertas;
 using Licitaciones.Application.Proveedores;
+using Licitaciones.Application.TiposCambio;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Licitaciones.Application;
@@ -21,6 +22,7 @@ public static class DependencyInjection
         servicios.AddScoped<LicitacionServicio>();
         servicios.AddScoped<OfertaServicio>();
         servicios.AddScoped<NivelAprobacionServicio>();
+        servicios.AddScoped<TipoCambioServicio>();
 
         return servicios;
     }
