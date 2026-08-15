@@ -1,5 +1,8 @@
-# Normalizar finales de línea entre Windows y Linux (contenedores y CI)
-* text=auto
+# Normalizar finales de línea entre Windows y Linux (contenedores y CI).
+# eol=lf hace que la copia de trabajo use LF también en Windows: sin esto Git
+# entrega CRLF, `.editorconfig` exige LF y `dotnet format --verify-no-changes`
+# falla en local mientras pasa en CI, que es la peor combinación posible.
+* text=auto eol=lf
 *.sh text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
