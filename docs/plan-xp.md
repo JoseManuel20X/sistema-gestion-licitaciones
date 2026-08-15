@@ -19,8 +19,8 @@ bitácora y revisión asistida por herramienta de IA declarada en
 
 ## Plan de liberación
 
-Cuatro iteraciones de duración uniforme (una semana calendario cada una), cada
-una con una liberación pequeña, ejecutable y demostrable, etiquetada en Git.
+Cuatro iteraciones, cada una con una liberación pequeña, ejecutable y
+demostrable, etiquetada en Git.
 
 | Iteración | Tema | Historias | Puntos | Liberación |
 |---|---|---|---|---|
@@ -29,9 +29,30 @@ una con una liberación pequeña, ejecutable y demostrable, etiquetada en Git.
 | 3 | Moneda, interfaz y API | HU-09, HU-10, HU-11, HU-12, HU-13 | 9 | `v0.3.0`: experiencia web completa y API REST v1 documentada. |
 | 4 | Despliegue, CI y E2E | HU-14, HU-15, HU-16, HU-17 | 10 | `v1.0.0` / `entrega-final`: solución contenerizada, desplegada y verificada E2E. |
 
-La velocidad planificada es de 9-10 puntos por iteración; la velocidad
-observada se registra al cierre de cada iteración en la
-[bitácora XP](bitacora-xp.md) y ajusta el plan siguiente.
+### Revisión del plan — 2026-08-12
+
+El plan inicial fijaba iteraciones de una semana. La velocidad observada en las
+iteraciones 1 y 2 fue muy superior a la planificada, así que el cliente
+replanificó el calendario acortando las iteraciones en lugar de mantener
+holgura artificial. Ajustar el plan con la velocidad real, en vez de forzar la
+realidad para que encaje en el plan, es la práctica XP que este documento
+declara.
+
+| Iteración | Fecha de cierre | Estado |
+|---|---|---|
+| 1 | 2026-08-12 | Cerrada, `v0.1.0` |
+| 2 | 2026-08-12 | Cerrada, `v0.2.0` |
+| 3 | 2026-08-16 | Planificada |
+| 4 | 2026-08-18 | Planificada |
+
+Las iteraciones 1 y 2 cerraron el mismo día porque comparten capa —dominio,
+aplicación y persistencia— y ninguna requería interfaz. Las iteraciones 3 y 4
+mantienen duración propia porque su alcance (interfaz, API, despliegue y
+pruebas de navegador) no se solapa.
+
+La velocidad observada se registra al cierre de cada iteración en la
+[bitácora XP](bitacora-xp.md) y ajusta el plan siguiente. El detalle técnico de
+lo que falta está en [plan-iteraciones-3-4.md](plan-iteraciones-3-4.md).
 
 ## Plan de iteración
 
