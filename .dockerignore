@@ -1,0 +1,22 @@
+# Reduce el contexto de construcción: sin esto Docker envía al daemon todos los
+# binarios y objetos locales, lo que ralentiza la compilación y puede colar
+# artefactos de la máquina dentro de la imagen.
+**/bin/
+**/obj/
+**/out/
+**/TestResults/
+**/coverage/
+
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+.claude/
+
+docs/
+k8s/
+**/*.user
+**/*.suo
+**/*.md
+**/.env*

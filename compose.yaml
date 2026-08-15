@@ -1,0 +1,60 @@
+# Ejecución local completa con `docker compose up --build` (enunciado §13.1).
+#
+# Las credenciales de este archivo son de desarrollo local y están declaradas a
+# la vista a propósito: no dan acceso a nada fuera de la máquina. Las de un
+# entorno real llegan por variables de entorno o secretos, nunca por el
+# repositorio (§11).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: licitaciones-postgres
+    environment:
+      POSTGRES_DB: licitaciones
+      POSTGRES_USER: licitaciones
+      POSTGRES_PASSWORD: licitaciones_local
+      # Acelera el arranque y mantiene reproducible la comparación de textos.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      # Expuesto para poder inspeccionar la base con un cliente durante el
+      # desarrollo y la defensa.
+      - "5432:5432"
+    volumes:
+      # Volumen con nombre: los datos sobreviven a `docker compose down` y a
+      # reiniciar los contenedores, que es lo que el §13.1 pide demostrar.
+      - datos-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U licitaciones -d licitaciones"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  api:
+    build:
+      # El contexto es la raíz porque la API referencia a los demás proyectos.
+      context: .
+      dockerfile: src/Licitaciones.Api/Dockerfile
+    container_name: licitaciones-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Licitaciones: "Host=postgres;Port=5432;Database=licitaciones;Username=licitaciones;Password=licitaciones_local"
+      TZ: America/Costa_Rica
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        # Espera a que PostgreSQL acepte conexiones: sin esto la API arranca
+        # antes y falla al aplicar las migraciones.
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/salud || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  datos-postgres:

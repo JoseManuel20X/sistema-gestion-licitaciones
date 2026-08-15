@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Licitaciones.Api.Http;
 using Licitaciones.Application;
 using Licitaciones.Infrastructure;
+using Licitaciones.Infrastructure.Persistencia;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 
@@ -49,6 +50,12 @@ builder.Services.Configure<ApiBehaviorOptions>(opciones =>
 
 builder.Services.AddExceptionHandler<ManejadorExcepciones>();
 
+// Comprobación de salud que verifica también la base de datos: un contenedor
+// que responde pero no alcanza PostgreSQL no está listo para recibir tráfico.
+// La usan el health check de Docker Compose y las probes de Kubernetes (§13).
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<LicitacionesDbContext>("postgresql");
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opciones =>
 {
@@ -89,6 +96,7 @@ app.UseSwaggerUI(opciones =>
     opciones.DocumentTitle = "API de Gestión de Licitaciones";
 });
 
+app.MapHealthChecks("/salud");
 app.MapControllers();
 
 await app.RunAsync();

@@ -15,7 +15,9 @@ dotnet_sort_system_directives_first = true
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
 csharp_prefer_braces = true:warning
-dotnet_style_require_accessibility_modifiers = always:warning
+# Los miembros de interfaz son públicos por definición; escribir el modificador
+# solo añade ruido. Se exige en todo lo demás.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 
 # El vocabulario del dominio se escribe en español (plan-xp.md, estándares de
 # código), por lo que los sufijos que exigen algunas reglas de análisis en inglés
