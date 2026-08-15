@@ -4,6 +4,7 @@ using Licitaciones.Domain.Aprobaciones;
 using Licitaciones.Domain.Licitaciones;
 using Licitaciones.Domain.Ofertas;
 using Licitaciones.Domain.Proveedores;
+using Licitaciones.Domain.TiposCambio;
 
 namespace Licitaciones.UnitTests.Common;
 
@@ -26,8 +27,13 @@ internal sealed class AlmacenFalso
 
     public List<NivelAprobacion> Niveles { get; } = [];
 
+    public List<TipoCambio> TiposCambio { get; } = [];
+
     /// <summary>Cantidad de confirmaciones solicitadas, para verificar que el caso de uso guarda.</summary>
     public int Confirmaciones { get; set; }
+
+    /// <summary>Transacciones abiertas, para verificar que la activación se hace en una sola.</summary>
+    public int Transacciones { get; set; }
 }
 
 internal sealed class UnidadDeTrabajoFalsa : IUnidadDeTrabajo
@@ -56,7 +62,32 @@ internal sealed class UnidadDeTrabajoFalsa : IUnidadDeTrabajo
 
     public Task<T> EnTransaccionAsync<T>(
         Func<CancellationToken, Task<T>> operacion,
-        CancellationToken cancelacion = default) => operacion(cancelacion);
+        CancellationToken cancelacion = default)
+    {
+        _almacen.Transacciones++;
+        return operacion(cancelacion);
+    }
+}
+
+internal sealed class TipoCambioRepositorioFalso : ITipoCambioRepositorio
+{
+    private readonly AlmacenFalso _almacen;
+
+    public TipoCambioRepositorioFalso(AlmacenFalso almacen) => _almacen = almacen;
+
+    public Task<TipoCambio?> ObtenerPorIdAsync(Guid id, CancellationToken cancelacion = default) =>
+        Task.FromResult(_almacen.TiposCambio.FirstOrDefault(t => t.Id == id));
+
+    public Task<TipoCambio?> ObtenerActivoAsync(CancellationToken cancelacion = default) =>
+        Task.FromResult(_almacen.TiposCambio.FirstOrDefault(t => t.Activo));
+
+    public Task<IReadOnlyList<TipoCambio>> ListarTodosAsync(CancellationToken cancelacion = default) =>
+        Task.FromResult<IReadOnlyList<TipoCambio>>(
+            [.. _almacen.TiposCambio.OrderByDescending(t => t.FechaVigencia)]);
+
+    public void Agregar(TipoCambio tipoCambio) => _almacen.TiposCambio.Add(tipoCambio);
+
+    public void Eliminar(TipoCambio tipoCambio) => _almacen.TiposCambio.Remove(tipoCambio);
 }
 
 internal sealed class ProveedorRepositorioFalso : IProveedorRepositorio
