@@ -1,0 +1,54 @@
+@model IReadOnlyList<NivelAprobacionDto>
+@{
+    ViewData["Title"] = "Niveles de aprobación";
+}
+
+<h1 class="h3 mb-3">Niveles de aprobación</h1>
+
+<p class="text-body-secondary">
+    El aprobador de una adjudicación se resuelve consultando esta tabla, no con
+    reglas fijas en el código. Los rangos no pueden traslaparse y solo uno puede
+    quedar abierto, sin monto máximo.
+</p>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-warning" role="status">
+        No hay niveles configurados. Sin al menos un rango, ninguna adjudicación
+        tendrá aprobador asignado.
+    </div>
+}
+else
+{
+    <div class="tabla-responsive">
+        <table class="table table-striped align-middle">
+            <caption class="visually-hidden">Rangos de aprobación configurados</caption>
+            <thead>
+                <tr>
+                    <th scope="col" class="text-end">Monto mínimo (CRC)</th>
+                    <th scope="col" class="text-end">Monto máximo (CRC)</th>
+                    <th scope="col">Aprobador</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var nivel in Model)
+                {
+                    <tr>
+                        <td class="monto">@nivel.MontoMinimoCRC.ToString("N2")</td>
+                        <td class="monto">
+                            @if (nivel.MontoMaximoCRC is null)
+                            {
+                                <span class="text-body-secondary">Sin límite</span>
+                            }
+                            else
+                            {
+                                @nivel.MontoMaximoCRC.Value.ToString("N2")
+                            }
+                        </td>
+                        <td>@nivel.Aprobador</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

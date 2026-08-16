@@ -1,0 +1,75 @@
+@model LicitacionDto
+@{
+    ViewData["Title"] = Model.Codigo;
+    var mejor = ViewBag.MejorOferta as MejorOfertaDto;
+}
+
+<nav aria-label="Ruta de navegación">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Licitaciones</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Codigo</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-1">@Model.Titulo</h1>
+<p class="text-body-secondary">@Model.Codigo</p>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-body-secondary mb-3">Datos</h2>
+                <dl class="row mb-0">
+                    <dt class="col-5">Estado</dt>
+                    <dd class="col-7">@Model.EstadoEfectivo</dd>
+
+                    <dt class="col-5">Fecha de cierre</dt>
+                    <dd class="col-7">@Model.FechaCierre.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-5">Presupuesto</dt>
+                    <dd class="col-7 monto">@Model.PresupuestoEstimadoCRC.ToString("C2")</dd>
+
+                    <dt class="col-5">Admite ofertas</dt>
+                    <dd class="col-7">@(Model.AceptaOfertas ? "Sí" : "No")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-body-secondary mb-3">Mejor oferta</h2>
+
+                @if (mejor is null || mejor.MejorOfertaId is null)
+                {
+                    <p class="mb-0">Sin ofertas válidas</p>
+                }
+                else
+                {
+                    <dl class="row mb-0">
+                        <dt class="col-5">Monto</dt>
+                        <dd class="col-7 monto">@mejor.MontoMejorOfertaCRC!.Value.ToString("C2")</dd>
+
+                        <dt class="col-5">Proveedor</dt>
+                        <dd class="col-7">@(mejor.NombreProveedor ?? "—")</dd>
+
+                        <dt class="col-5">Ahorro</dt>
+                        <dd class="col-7">@mejor.PorcentajeAhorro!.Value.ToString("N2") %</dd>
+
+                        <dt class="col-5">Clasificación</dt>
+                        <dd class="col-7">@mejor.Clasificacion</dd>
+
+                        <dt class="col-5">Aprobador</dt>
+                        <dd class="col-7">@(mejor.Aprobador ?? "Sin nivel aplicable")</dd>
+                    </dl>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<a class="btn btn-outline-secondary"
+   asp-controller="Ofertas" asp-action="Index" asp-route-licitacionId="@Model.Id">
+    Ver todas sus ofertas
+</a>

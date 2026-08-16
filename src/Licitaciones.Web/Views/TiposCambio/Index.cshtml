@@ -1,0 +1,54 @@
+@model IReadOnlyList<TipoCambioDto>
+@{
+    ViewData["Title"] = "Tipo de cambio";
+}
+
+<h1 class="h3 mb-3">Tipo de cambio</h1>
+
+<p class="text-body-secondary">
+    Los montos oficiales se almacenan siempre en colones. El tipo de cambio se
+    administra aquí, de modo que el sistema funciona sin acceso a Internet, y solo
+    uno puede estar activo para la operación ordinaria.
+</p>
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-warning" role="status">
+        No hay tipos de cambio registrados. Sin uno activo no es posible mostrar
+        montos en dólares.
+    </div>
+}
+else
+{
+    <div class="tabla-responsive">
+        <table class="table table-striped align-middle">
+            <caption class="visually-hidden">Tipos de cambio registrados</caption>
+            <thead>
+                <tr>
+                    <th scope="col" class="text-end">Colones por dólar</th>
+                    <th scope="col">Vigencia</th>
+                    <th scope="col">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tipoCambio in Model)
+                {
+                    <tr>
+                        <td class="monto">@tipoCambio.CRCporUSD.ToString("N4")</td>
+                        <td>@tipoCambio.FechaVigencia.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (tipoCambio.Activo)
+                            {
+                                <span class="badge text-bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Inactivo</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

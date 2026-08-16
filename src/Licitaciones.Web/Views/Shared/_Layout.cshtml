@@ -1,48 +1,96 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Inicio";
+
+    string Activo(string nombre) =>
+        string.Equals(controlador, nombre, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+}
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Licitaciones.Web</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] · Gestión de Licitaciones</title>
+
+    @* El tema se aplica antes de pintar nada para evitar el parpadeo blanco que
+       se vería si se ajustara desde site.js al final del documento. *@
+    <script>
+        (function () {
+            var guardado = localStorage.getItem('tema');
+            var oscuroPorSistema = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-bs-theme', guardado || (oscuroPorSistema ? 'dark' : 'light'));
+        })();
+    </script>
+
+    @* Recursos servidos desde el propio sitio: la interfaz no depende de una CDN
+       y funciona sin acceso a Internet (enunciado §9). *@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Licitaciones.Web.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Licitaciones.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+            <div class="container">
+                <a class="navbar-brand fw-semibold" asp-controller="Inicio" asp-action="Index">
+                    Gestión de Licitaciones
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#menuPrincipal" aria-controls="menuPrincipal"
+                        aria-expanded="false" aria-label="Abrir el menú de navegación">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="menuPrincipal">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link @Activo("Inicio")" asp-controller="Inicio" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link @Activo("Licitaciones")" asp-controller="Licitaciones" asp-action="Index">Licitaciones</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Activo("Proveedores")" asp-controller="Proveedores" asp-action="Index">Proveedores</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Activo("Ofertas")" asp-controller="Ofertas" asp-action="Index">Ofertas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Activo("NivelesAprobacion")" asp-controller="NivelesAprobacion" asp-action="Index">Niveles de aprobación</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @Activo("TiposCambio")" asp-controller="TiposCambio" asp-action="Index">Tipo de cambio</a>
+                        </li>
+                        <li class="nav-item">
+                            @* La documentación interactiva la sirve el proyecto de API. *@
+                            <a class="nav-link" href="@(ViewBag.UrlSwagger ?? "/swagger")" target="_blank" rel="noopener">
+                                API <span aria-hidden="true">↗</span>
+                            </a>
                         </li>
                     </ul>
+
+                    <button id="botonTema" type="button" class="btn btn-outline-secondary btn-sm"
+                            aria-label="Cambiar entre modo claro y oscuro">
+                        <span id="iconoTema" aria-hidden="true"></span>
+                        <span id="textoTema"></span>
+                    </button>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Licitaciones.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main" class="container flex-grow-1 py-4">
+        @RenderBody()
+    </main>
+
+    <footer class="border-top py-3 mt-auto bg-body-tertiary">
+        <div class="container text-body-secondary small">
+            Sistema de Gestión de Licitaciones · Montos oficiales en colones costarricenses (CRC)
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

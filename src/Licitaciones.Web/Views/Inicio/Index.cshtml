@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="row align-items-center mb-5">
+    <div class="col-lg-8">
+        <h1 class="display-6 mb-3">Sistema de Gestión de Licitaciones</h1>
+        <p class="lead mb-3">
+            Administra el ciclo completo de una licitación: registro de proveedores,
+            publicación con presupuesto, recepción y validación de ofertas económicas,
+            determinación de la mejor oferta y asignación del nivel de aprobación.
+        </p>
+        <p class="text-body-secondary mb-0">
+            El <strong>colón costarricense (CRC)</strong> es la moneda oficial y la única
+            fuente de verdad. La vista en dólares es una conversión de referencia que
+            nunca modifica los valores almacenados.
+        </p>
+    </div>
+    <div class="col-lg-4 mt-4 mt-lg-0">
+        <div class="card tarjeta-flujo">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-body-secondary mb-3">Empezar</h2>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-primary" asp-controller="Licitaciones" asp-action="Index">Ver licitaciones</a>
+                    <a class="btn btn-outline-secondary" asp-controller="Proveedores" asp-action="Index">Registrar un proveedor</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h4 mb-3">El flujo de una licitación</h2>
+<div class="row row-cols-1 row-cols-md-3 g-3 mb-5">
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="badge text-bg-secondary mb-2">Paso 1</span>
+                <h3 class="h6">Borrador</h3>
+                <p class="card-text small mb-0">
+                    La licitación se crea con un código único, un título, un presupuesto
+                    estimado en colones y una fecha de cierre. Mientras esté en borrador
+                    no admite ofertas.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="badge text-bg-success mb-2">Paso 2</span>
+                <h3 class="h6">Publicada</h3>
+                <p class="card-text small mb-0">
+                    Se publica cuando los datos están completos y la fecha de cierre es
+                    futura. A partir de ahí los proveedores presentan sus ofertas, con
+                    un máximo de una por proveedor.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="badge text-bg-danger mb-2">Paso 3</span>
+                <h3 class="h6">Cerrada</h3>
+                <p class="card-text small mb-0">
+                    Se cierra por acción autorizada o al alcanzarse la fecha de cierre.
+                    Una licitación vencida deja de admitir ofertas aunque nadie la haya
+                    cerrado a mano.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h4 mb-3">Qué valida el sistema</h2>
+<div class="row row-cols-1 row-cols-md-2 g-3 mb-5">
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h3 class="h6">Ofertas</h3>
+                <p class="card-text small mb-0">
+                    Una oferta se rechaza si supera el presupuesto, si el proveedor ya
+                    ofertó en esa licitación, si la licitación no está publicada o si la
+                    fecha de cierre ya se alcanzó. Una oferta igual al presupuesto es
+                    válida.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h3 class="h6">Mejor oferta y clasificación</h3>
+                <p class="card-text small mb-2">
+                    Gana la oferta válida de menor monto; en empate, la registrada
+                    primero. El ahorro se clasifica así:
+                </p>
+                <ul class="small mb-0 ps-3">
+                    <li><strong>Oferta conveniente</strong>: ahorro igual o superior al 10 %.</li>
+                    <li><strong>Oferta aceptable</strong>: ahorro mayor que 0 % y menor que 10 %.</li>
+                    <li><strong>Oferta válida sin ahorro</strong>: oferta igual al presupuesto.</li>
+                    <li><strong>Sin ofertas válidas</strong>: la licitación no recibió ofertas.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h3 class="h6">Nivel de aprobación</h3>
+                <p class="card-text small mb-0">
+                    El aprobador que corresponde a cada monto sale de una
+                    <a asp-controller="NivelesAprobacion" asp-action="Index">tabla configurable</a>
+                    de rangos sin traslape, no de reglas fijas en el código. Cambiar la
+                    política de aprobación no requiere reprogramar el sistema.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h3 class="h6">Conversión de moneda</h3>
+                <p class="card-text small mb-0">
+                    Los montos se guardan siempre en colones. El
+                    <a asp-controller="TiposCambio" asp-action="Index">tipo de cambio</a>
+                    se administra localmente, por lo que el sistema funciona sin acceso a
+                    Internet, y al mostrar dólares se indica la fecha del tipo de cambio
+                    aplicado.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-body-tertiary">
+    <div class="card-body">
+        <h2 class="h6 mb-2">¿Prefieres integrarlo con otro sistema?</h2>
+        <p class="card-text small mb-0">
+            Las mismas operaciones están disponibles en la
+            <a href="@(ViewBag.UrlSwagger ?? "/swagger")" target="_blank" rel="noopener">API REST versionada</a>,
+            con documentación interactiva, paginación y respuestas de error normalizadas.
+        </p>
+    </div>
+</div>

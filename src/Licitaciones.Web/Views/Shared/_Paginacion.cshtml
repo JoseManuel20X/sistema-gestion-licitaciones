@@ -1,0 +1,62 @@
+@model Licitaciones.Web.Models.PaginacionViewModel
+
+@*
+    Control de paginación compartido por todos los listados (enunciado §9).
+    Conserva el filtro y el orden vigentes al cambiar de página: perderlos al
+    navegar obligaría a rehacer la búsqueda en cada salto.
+*@
+
+@if (Model.TotalPaginas > 1)
+{
+    <nav aria-label="Paginación de resultados">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.Pagina <= 1 ? "disabled" : string.Empty)">
+                <a class="page-link"
+                   asp-action="@Model.Accion"
+                   asp-route-pagina="@(Model.Pagina - 1)"
+                   asp-route-filtro="@Model.Filtro"
+                   asp-route-ordenarPor="@Model.OrdenarPor"
+                   asp-route-descendente="@Model.Descendente"
+                   aria-label="Página anterior">Anterior</a>
+            </li>
+
+            @{
+                // Se muestra una ventana alrededor de la página actual en lugar de
+                // todas: con muchas páginas la barra se volvería inmanejable.
+                var desde = Math.Max(1, Model.Pagina - 2);
+                var hasta = Math.Min(Model.TotalPaginas, Model.Pagina + 2);
+            }
+
+            @for (var p = desde; p <= hasta; p++)
+            {
+                <li class="page-item @(p == Model.Pagina ? "active" : string.Empty)">
+                    <a class="page-link"
+                       asp-action="@Model.Accion"
+                       asp-route-pagina="@p"
+                       asp-route-filtro="@Model.Filtro"
+                       asp-route-ordenarPor="@Model.OrdenarPor"
+                       asp-route-descendente="@Model.Descendente"
+                       aria-current="@(p == Model.Pagina ? "page" : null)">@p</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.Pagina >= Model.TotalPaginas ? "disabled" : string.Empty)">
+                <a class="page-link"
+                   asp-action="@Model.Accion"
+                   asp-route-pagina="@(Model.Pagina + 1)"
+                   asp-route-filtro="@Model.Filtro"
+                   asp-route-ordenarPor="@Model.OrdenarPor"
+                   asp-route-descendente="@Model.Descendente"
+                   aria-label="Página siguiente">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+}
+
+<p class="text-body-secondary small mt-2 mb-0">
+    @Model.TotalElementos @(Model.TotalElementos == 1 ? "registro" : "registros")
+    @if (Model.TotalPaginas > 1)
+    {
+        <text>· página @Model.Pagina de @Model.TotalPaginas</text>
+    }
+</p>
