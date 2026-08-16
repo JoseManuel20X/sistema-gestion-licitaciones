@@ -16,9 +16,12 @@ services:
       # Acelera el arranque y mantiene reproducible la comparación de textos.
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
-      # Expuesto para poder inspeccionar la base con un cliente durante el
-      # desarrollo y la defensa.
-      - "5432:5432"
+      # Se publica en 5433 y no en 5432 a propósito: una instalación nativa de
+      # PostgreSQL en la máquina anfitriona ocupa el 5432 y deja el reenvío de
+      # Docker en la sombra, con un fallo de autenticación difícil de
+      # diagnosticar. Dentro de la red de Compose los servicios siguen usando el
+      # 5432 estándar.
+      - "5433:5432"
     volumes:
       # Volumen con nombre: los datos sobreviven a `docker compose down` y a
       # reiniciar los contenedores, que es lo que el §13.1 pide demostrar.
