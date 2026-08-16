@@ -1,31 +1,58 @@
+/*
+  Estilos propios sobre Bootstrap 5.3.
+  El modo oscuro lo resuelve el propio Bootstrap con data-bs-theme, así que aquí
+  no se redefinen colores: solo se ajusta lo que la biblioteca no cubre, usando
+  sus variables para que ambos temas queden coherentes sin duplicar paletas.
+*/
+
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Foco siempre visible: la navegación por teclado no debe perder el rastro. */
+:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+.navbar-brand {
+    letter-spacing: -0.01em;
 }
 
-body {
-  margin-bottom: 60px;
+/* Los montos se alinean a la derecha y con cifras de ancho fijo, para poder
+   compararlos de un vistazo en las tablas. */
+.monto {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* Las tablas anchas se desplazan dentro de su contenedor en lugar de romper el
+   diseño en pantallas pequeñas. */
+.tabla-responsive {
+    overflow-x: auto;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.tarjeta-flujo {
+    border-left: 4px solid var(--bs-primary);
+}
+
+/* Estados de la licitación. Se usan las variables de Bootstrap para que el
+   contraste siga siendo correcto al cambiar de tema. */
+.estado-borrador {
+    color: var(--bs-secondary-color);
+}
+
+.estado-publicada {
+    color: var(--bs-success-text-emphasis);
+}
+
+.estado-cerrada {
+    color: var(--bs-danger-text-emphasis);
 }
