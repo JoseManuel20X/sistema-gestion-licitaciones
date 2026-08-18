@@ -33,16 +33,16 @@ desarrollado con Extreme Programming (XP) como única metodología.
 | [Ofertas](modulos/ofertas.md) | Validaciones, mejor oferta y clasificación de ahorro. | ✅ |
 | [Niveles de aprobación](modulos/niveles-aprobacion.md) | Rangos parametrizables sin traslape. | ✅ |
 | [Persistencia](modulos/persistencia.md) | EF Core, migraciones, auditoría y concurrencia. | ✅ |
-| Tipo de cambio | Administración del tipo de cambio y conversión CRC/USD. | ⏳ Iteración 3 |
-| Interfaz web | Navegación, temas, formularios y accesibilidad. | ⏳ Iteración 3 |
-| API REST | Contratos HTTP, versionado y manejo de errores. | ⏳ Iteración 3 |
+| [Tipo de cambio](modulos/tipo-cambio.md) | Administración del tipo de cambio y conversión CRC/USD. | ✅ |
+| [Interfaz web](modulos/interfaz-web.md) | Navegación, temas, formularios y accesibilidad. | ✅ |
+| [API REST](modulos/api-rest.md) | Contratos HTTP, versionado y manejo de errores. | ✅ |
 
 ### Operación
 
 | Documento | Contenido | Estado |
 |---|---|---|
 | [Pruebas](pruebas.md) | Estrategia de pruebas, ejecución y cobertura. | ✅ |
-| API | Endpoints, ejemplos de solicitud/respuesta y errores. | ⏳ Iteración 3 |
+| [API](api.md) | Endpoints, ejemplos de solicitud/respuesta y errores. | ✅ |
 | Docker | Construcción y ejecución con Docker Compose. | ⏳ Iteración 4 |
 | Kubernetes | Despliegue, probes y persistencia en Kubernetes. | ⏳ Iteración 4 |
 
