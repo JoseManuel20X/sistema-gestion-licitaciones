@@ -1,3 +1,4 @@
+using System.Globalization;
 using Licitaciones.Application.TiposCambio;
 using Licitaciones.Web.Infraestructura;
 using Licitaciones.Web.Models;
@@ -15,6 +16,31 @@ public sealed class TiposCambioController : ControladorBase
     /// <summary>Listado de tipos de cambio, del más vigente al más antiguo.</summary>
     public async Task<IActionResult> Index(CancellationToken cancelacion) =>
         View(await _servicio.ListarAsync(cancelacion));
+
+    /// <summary>
+    /// Devuelve el tipo de cambio activo en JSON para el interruptor CRC/USD.
+    /// </summary>
+    /// <remarks>
+    /// El interruptor lo pide una sola vez, la primera vez que se usa, en lugar
+    /// de incrustarlo en cada página: la mayoría de las visitas no alterna moneda
+    /// y no tiene sentido cargarlo siempre.
+    /// </remarks>
+    [HttpGet]
+    public async Task<IActionResult> ConversionActiva(CancellationToken cancelacion)
+    {
+        var activo = await _servicio.ObtenerActivoAsync(cancelacion);
+
+        if (!activo.EsExitoso)
+        {
+            return NotFound(new { mensaje = activo.Error!.Mensaje });
+        }
+
+        return Json(new
+        {
+            crcPorUsd = activo.Valor!.CRCporUSD,
+            fechaVigencia = activo.Valor.FechaVigencia.ToOffset(TimeSpan.FromHours(-6)).ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("es-CR")),
+        });
+    }
 
     [HttpGet]
     public IActionResult Crear() => View("Formulario", new TipoCambioFormulario());

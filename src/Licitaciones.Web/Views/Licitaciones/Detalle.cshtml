@@ -64,7 +64,7 @@
                     <dd class="col-7">@Model.FechaCierre.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
 
                     <dt class="col-5">Presupuesto</dt>
-                    <dd class="col-7 monto" data-monto-crc="@Model.PresupuestoEstimadoCRC">
+                    <dd class="col-7 monto" data-monto-crc="@Model.PresupuestoEstimadoCRC.ToString(CultureInfo.InvariantCulture)">
                         @Model.PresupuestoEstimadoCRC.ToString("C2")
                     </dd>
 
@@ -88,7 +88,7 @@
                 {
                     <dl class="row mb-0">
                         <dt class="col-5">Monto</dt>
-                        <dd class="col-7 monto" data-monto-crc="@mejor.MontoMejorOfertaCRC">
+                        <dd class="col-7 monto" data-monto-crc="@mejor.MontoMejorOfertaCRC!.Value.ToString(CultureInfo.InvariantCulture)">
                             @mejor.MontoMejorOfertaCRC!.Value.ToString("C2")
                         </dd>
 
@@ -143,7 +143,7 @@ else
                 {
                     <tr>
                         <td>@(oferta.NombreProveedor ?? "—")</td>
-                        <td class="monto" data-monto-crc="@oferta.MontoOfertadoCRC">
+                        <td class="monto" data-monto-crc="@oferta.MontoOfertadoCRC.ToString(CultureInfo.InvariantCulture)">
                             @oferta.MontoOfertadoCRC.ToString("N2")
                         </td>
                         <td>@oferta.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>

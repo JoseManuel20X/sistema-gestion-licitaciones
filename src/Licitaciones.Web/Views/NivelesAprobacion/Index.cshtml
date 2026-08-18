@@ -38,7 +38,7 @@ else
                 @foreach (var nivel in Model)
                 {
                     <tr>
-                        <td class="monto">@nivel.MontoMinimoCRC.ToString("N2")</td>
+                        <td class="monto" data-monto-crc="@nivel.MontoMinimoCRC.ToString(CultureInfo.InvariantCulture)">@nivel.MontoMinimoCRC.ToString("N2")</td>
                         <td class="monto">
                             @if (nivel.MontoMaximoCRC is null)
                             {

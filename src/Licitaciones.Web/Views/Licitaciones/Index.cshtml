@@ -82,7 +82,7 @@ else
                             }
                         </td>
                         <td>@licitacion.FechaCierre.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="monto">@licitacion.PresupuestoEstimadoCRC.ToString("N2")</td>
+                        <td class="monto" data-monto-crc="@licitacion.PresupuestoEstimadoCRC.ToString(CultureInfo.InvariantCulture)">@licitacion.PresupuestoEstimadoCRC.ToString("N2")</td>
                         <td class="text-end text-nowrap">
                             <a class="btn btn-sm btn-outline-secondary"
                                asp-action="Detalle" asp-route-id="@licitacion.Id">Ver</a>

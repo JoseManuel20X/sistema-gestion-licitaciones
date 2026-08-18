@@ -68,6 +68,14 @@
                         </li>
                     </ul>
 
+                    @* Alterna la vista de todos los montos entre colones y dólares (HU-10).
+                       La conversión es solo de presentación: los valores guardados
+                       no cambian nunca (§8.8). *@
+                    <button id="botonMoneda" type="button" class="btn btn-outline-secondary btn-sm me-2"
+                            aria-label="Alternar los montos entre colones y dólares" aria-pressed="false">
+                        CRC
+                    </button>
+
                     <button id="botonTema" type="button" class="btn btn-outline-secondary btn-sm"
                             aria-label="Cambiar entre modo claro y oscuro">
                         <span id="iconoTema" aria-hidden="true"></span>
@@ -80,6 +88,9 @@
 
     <main role="main" class="container flex-grow-1 py-4">
         <partial name="_Mensajes" />
+
+        @* Aviso de la fecha del tipo de cambio aplicado, que el §8.8 exige mostrar. *@
+        <div id="avisoMoneda" class="alert alert-secondary py-2 small d-none" role="status"></div>
         @RenderBody()
     </main>
 

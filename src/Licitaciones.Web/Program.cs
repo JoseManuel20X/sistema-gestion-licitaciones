@@ -1,6 +1,7 @@
 using System.Globalization;
 using Licitaciones.Application;
 using Licitaciones.Infrastructure;
+using Licitaciones.Web.Infraestructura;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,10 @@ var cadenaConexion = builder.Configuration.GetConnectionString("Licitaciones")
 builder.Services.AgregarAplicacion();
 builder.Services.AgregarInfraestructura(cadenaConexion);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(opciones =>
+    // Debe ir primero para tener prioridad sobre el enlazador de decimales que
+    // trae el marco, que solo entiende la cultura de la petición.
+    opciones.ModelBinderProviders.Insert(0, new ProveedorEnlazadorDecimal()));
 
 var app = builder.Build();
 

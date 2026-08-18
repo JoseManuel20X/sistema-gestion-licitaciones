@@ -46,7 +46,7 @@ else
                 {
                     <tr>
                         <td>@(oferta.NombreProveedor ?? "—")</td>
-                        <td class="monto">@oferta.MontoOfertadoCRC.ToString("N2")</td>
+                        <td class="monto" data-monto-crc="@oferta.MontoOfertadoCRC.ToString(CultureInfo.InvariantCulture)">@oferta.MontoOfertadoCRC.ToString("N2")</td>
                         <td>@oferta.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                     </tr>
                 }

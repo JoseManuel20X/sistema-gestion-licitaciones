@@ -1,6 +1,122 @@
-@Licitaciones.Api_HostAddress = http://localhost:5050
+# Colección reproducible de peticiones (enunciado §10.2).
+#
+# Ejecuta el flujo funcional mínimo del §5.3 en orden. Cada petición guarda lo
+# que la siguiente necesita, así que basta con lanzarlas de arriba abajo.
+#
+# Requiere la solución en marcha: docker compose up --build
 
-GET {{Licitaciones.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+@host = http://localhost:8080
 
-###
+### 1. Comprobar que la aplicación responde y alcanza la base de datos
+GET {{host}}/salud
+
+### 2. Ver los niveles de aprobación sembrados (§8.7)
+GET {{host}}/api/v1/niveles-aprobacion
+
+### 3. Ver el tipo de cambio activo sembrado
+GET {{host}}/api/v1/tipos-cambio/activo
+
+### 4. Registrar un proveedor con nombre válido y único
+# @name crearProveedor
+POST {{host}}/api/v1/proveedores
+Content-Type: application/json
+
+{
+  "nombre": "Empresa Central"
+}
+
+### 5. Intentar el mismo nombre con otra grafía: debe devolver 409
+# La unicidad ignora mayúsculas y espacios repetidos (§8.3).
+POST {{host}}/api/v1/proveedores
+Content-Type: application/json
+
+{
+  "nombre": "  empresa   CENTRAL  "
+}
+
+### 6. Intentar un nombre con caracteres no permitidos: debe devolver 400
+POST {{host}}/api/v1/proveedores
+Content-Type: application/json
+
+{
+  "nombre": "Empresa @ Central"
+}
+
+### 7. Crear una licitación con código único y fecha de cierre futura
+# @name crearLicitacion
+POST {{host}}/api/v1/licitaciones
+Content-Type: application/json
+
+{
+  "codigo": "LIC-2026-001",
+  "titulo": "Compra de equipo de cómputo",
+  "presupuestoEstimadoCRC": 1000000.00,
+  "fechaCierre": "2026-12-31T17:00:00-06:00"
+}
+
+### 8. Publicar la licitación mediante una transición permitida
+PATCH {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/estado
+Content-Type: application/json
+
+{
+  "transicion": "Publicar"
+}
+
+### 9. Registrar una oferta válida
+POST {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/ofertas
+Content-Type: application/json
+
+{
+  "proveedorId": "{{crearProveedor.response.body.id}}",
+  "montoOfertadoCRC": 800000.00
+}
+
+### 10. Intentar una segunda oferta del mismo proveedor: debe devolver 409
+POST {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/ofertas
+Content-Type: application/json
+
+{
+  "proveedorId": "{{crearProveedor.response.body.id}}",
+  "montoOfertadoCRC": 750000.00
+}
+
+### 11. Intentar una oferta superior al presupuesto: debe devolver 422
+POST {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/ofertas
+Content-Type: application/json
+
+{
+  "proveedorId": "{{crearProveedor.response.body.id}}",
+  "montoOfertadoCRC": 1000000.01
+}
+
+### 12. Consultar la mejor oferta, su clasificación y el aprobador
+GET {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/mejor-oferta
+
+### 13. Convertir un monto a dólares indicando el tipo de cambio aplicado
+GET {{host}}/api/v1/tipos-cambio/convertir?montoCRC=1040000
+
+### 14. Resolver el aprobador que corresponde a un monto
+GET {{host}}/api/v1/niveles-aprobacion/aprobador?montoCRC=5000000
+
+### 15. Listar licitaciones con paginación y ordenamiento
+GET {{host}}/api/v1/licitaciones?pagina=1&tamanoPagina=10&ordenarPor=fechaCierre
+
+### 16. Cerrar la licitación
+PATCH {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/estado
+Content-Type: application/json
+
+{
+  "transicion": "Cerrar"
+}
+
+### 17. Intentar ofertar en una licitación cerrada: debe devolver 422
+POST {{host}}/api/v1/licitaciones/{{crearLicitacion.response.body.id}}/ofertas
+Content-Type: application/json
+
+{
+  "proveedorId": "{{crearProveedor.response.body.id}}",
+  "montoOfertadoCRC": 700000.00
+}
+
+### 18. Consultar un recurso inexistente: debe devolver 404 con ProblemDetails
+GET {{host}}/api/v1/proveedores/00000000-0000-0000-0000-000000000000
