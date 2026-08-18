@@ -1,0 +1,17 @@
+@*
+    Resumen de los errores que no pertenecen a un campo concreto: reglas de
+    negocio y conflictos, como una transición de estado no permitida o un código
+    duplicado. Los errores de un campo se muestran junto a él.
+*@
+
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+{
+    <div class="alert alert-danger" role="alert">
+        <ul class="mb-0 ps-3">
+            @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}

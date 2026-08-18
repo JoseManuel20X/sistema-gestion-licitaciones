@@ -1,0 +1,44 @@
+@model TipoCambioFormulario
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar tipo de cambio" : "Nuevo tipo de cambio";
+    var accion = Model.EsEdicion ? "Editar" : "Crear";
+}
+
+<nav aria-label="Ruta de navegación">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Tipo de cambio</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<partial name="_ResumenValidacion" />
+
+<form method="post" asp-action="@accion" asp-route-id="@Model.Id" class="row g-3" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div class="col-md-4">
+        <label asp-for="CRCporUSD" class="form-label"></label>
+        <input asp-for="CRCporUSD" class="form-control monto" type="number" step="0.0001" min="0.0001" autofocus />
+        <span asp-validation-for="CRCporUSD" class="text-danger small"></span>
+        <div class="form-text">
+            Cuatro decimales: un tipo de cambio se cotiza con más precisión que un monto.
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="FechaVigencia" class="form-label"></label>
+        <input asp-for="FechaVigencia" class="form-control" type="date" />
+        <span asp-validation-for="FechaVigencia" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,65 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model OfertaFormulario
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar oferta" : "Registrar oferta";
+    var accion = Model.EsEdicion ? "Editar" : "Crear";
+    var proveedores = ViewBag.Proveedores as List<SelectListItem> ?? [];
+}
+
+<nav aria-label="Ruta de navegación">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Licitaciones" asp-action="Index">Licitaciones</a></li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Licitaciones" asp-action="Detalle" asp-route-id="@Model.LicitacionId">
+                @(Model.CodigoLicitacion ?? "Licitación")
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<partial name="_ResumenValidacion" />
+
+<form method="post" asp-action="@accion" asp-route-id="@Model.Id" class="row g-3" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="LicitacionId" />
+    <input type="hidden" asp-for="CodigoLicitacion" />
+    <input type="hidden" asp-for="PresupuestoCRC" />
+
+    <div class="col-md-6">
+        <label asp-for="ProveedorId" class="form-label"></label>
+        @* Al editar no se cambia el proveedor: sería otra oferta distinta. *@
+        <select asp-for="ProveedorId" class="form-select" asp-items="proveedores" disabled="@Model.EsEdicion">
+            <option value="">— Seleccione un proveedor —</option>
+        </select>
+        @if (Model.EsEdicion)
+        {
+            <input type="hidden" asp-for="ProveedorId" />
+        }
+        <span asp-validation-for="ProveedorId" class="text-danger small"></span>
+        <div class="form-text">Un proveedor solo puede presentar una oferta por licitación.</div>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="MontoOfertadoCRC" class="form-label"></label>
+        <input asp-for="MontoOfertadoCRC" class="form-control monto" type="number" step="0.01" min="0.01"
+               max="@Model.PresupuestoCRC" />
+        <span asp-validation-for="MontoOfertadoCRC" class="text-danger small"></span>
+        <div class="form-text">
+            Presupuesto de la licitación: @Model.PresupuestoCRC.ToString("N2") CRC.
+            Una oferta igual al presupuesto es válida; superarlo no.
+        </div>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-outline-secondary"
+           asp-controller="Licitaciones" asp-action="Detalle" asp-route-id="@Model.LicitacionId">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

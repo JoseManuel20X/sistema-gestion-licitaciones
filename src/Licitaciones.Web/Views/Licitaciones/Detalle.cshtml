@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = Model.Codigo;
     var mejor = ViewBag.MejorOferta as MejorOfertaDto;
+    var ofertas = ViewBag.Ofertas as IReadOnlyList<OfertaDto> ?? [];
 }
 
 <nav aria-label="Ruta de navegación">
@@ -11,8 +12,38 @@
     </ol>
 </nav>
 
-<h1 class="h3 mb-1">@Model.Titulo</h1>
-<p class="text-body-secondary">@Model.Codigo</p>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">@Model.Titulo</h1>
+        <p class="text-body-secondary mb-0">@Model.Codigo</p>
+    </div>
+
+    <div class="text-nowrap">
+        @* Solo se ofrecen las transiciones que el dominio admite desde el estado
+           actual. Si aun así se intenta una prohibida, el dominio la rechaza y el
+           motivo se muestra como mensaje (§8.1). *@
+        @if (Model.Estado == "Borrador")
+        {
+            <form method="post" asp-action="CambiarEstado" asp-route-id="@Model.Id" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="transicion" value="Publicar" />
+                <button type="submit" class="btn btn-success">Publicar</button>
+            </form>
+        }
+
+        @if (Model.EstadoEfectivo != "Cerrada")
+        {
+            <form method="post" asp-action="CambiarEstado" asp-route-id="@Model.Id" class="d-inline"
+                  data-confirmar="¿Cerrar la licitación «@Model.Codigo»? No admitirá más ofertas.">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="transicion" value="Cerrar" />
+                <button type="submit" class="btn btn-outline-danger">Cerrar</button>
+            </form>
+
+            <a class="btn btn-outline-secondary" asp-action="Editar" asp-route-id="@Model.Id">Editar</a>
+        }
+    </div>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-6">
@@ -21,13 +52,21 @@
                 <h2 class="h6 text-uppercase text-body-secondary mb-3">Datos</h2>
                 <dl class="row mb-0">
                     <dt class="col-5">Estado</dt>
-                    <dd class="col-7">@Model.EstadoEfectivo</dd>
+                    <dd class="col-7">
+                        @Model.EstadoEfectivo
+                        @if (Model.Vencida && Model.Estado == "Publicada")
+                        {
+                            <span class="badge text-bg-warning ms-1">vencida</span>
+                        }
+                    </dd>
 
                     <dt class="col-5">Fecha de cierre</dt>
                     <dd class="col-7">@Model.FechaCierre.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
 
                     <dt class="col-5">Presupuesto</dt>
-                    <dd class="col-7 monto">@Model.PresupuestoEstimadoCRC.ToString("C2")</dd>
+                    <dd class="col-7 monto" data-monto-crc="@Model.PresupuestoEstimadoCRC">
+                        @Model.PresupuestoEstimadoCRC.ToString("C2")
+                    </dd>
 
                     <dt class="col-5">Admite ofertas</dt>
                     <dd class="col-7">@(Model.AceptaOfertas ? "Sí" : "No")</dd>
@@ -49,7 +88,9 @@
                 {
                     <dl class="row mb-0">
                         <dt class="col-5">Monto</dt>
-                        <dd class="col-7 monto">@mejor.MontoMejorOfertaCRC!.Value.ToString("C2")</dd>
+                        <dd class="col-7 monto" data-monto-crc="@mejor.MontoMejorOfertaCRC">
+                            @mejor.MontoMejorOfertaCRC!.Value.ToString("C2")
+                        </dd>
 
                         <dt class="col-5">Proveedor</dt>
                         <dd class="col-7">@(mejor.NombreProveedor ?? "—")</dd>
@@ -69,7 +110,67 @@
     </div>
 </div>
 
-<a class="btn btn-outline-secondary"
-   asp-controller="Ofertas" asp-action="Index" asp-route-licitacionId="@Model.Id">
-    Ver todas sus ofertas
-</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="h5 mb-0">Ofertas</h2>
+    @if (Model.AceptaOfertas)
+    {
+        <a class="btn btn-primary btn-sm"
+           asp-controller="Ofertas" asp-action="Crear" asp-route-licitacionId="@Model.Id">
+            Registrar oferta
+        </a>
+    }
+</div>
+
+@if (ofertas.Count == 0)
+{
+    <div class="alert alert-info" role="status">Esta licitación todavía no tiene ofertas.</div>
+}
+else
+{
+    <div class="tabla-responsive">
+        <table class="table table-striped align-middle">
+            <caption class="visually-hidden">Ofertas presentadas en la licitación</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Proveedor</th>
+                    <th scope="col" class="text-end">Monto (CRC)</th>
+                    <th scope="col">Registrada</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var oferta in ofertas)
+                {
+                    <tr>
+                        <td>@(oferta.NombreProveedor ?? "—")</td>
+                        <td class="monto" data-monto-crc="@oferta.MontoOfertadoCRC">
+                            @oferta.MontoOfertadoCRC.ToString("N2")
+                        </td>
+                        <td>@oferta.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end text-nowrap">
+                            @if (Model.AceptaOfertas)
+                            {
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   asp-controller="Ofertas" asp-action="Editar" asp-route-id="@oferta.Id">Editar</a>
+
+                                <form method="post" asp-controller="Ofertas" asp-action="Eliminar"
+                                      asp-route-id="@oferta.Id" asp-route-licitacionId="@Model.Id"
+                                      class="d-inline"
+                                      data-confirmar="¿Eliminar esta oferta?">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                </form>
+                            }
+                            else
+                            {
+                                @* Las ofertas de una licitación cerrada se conservan como
+                                   evidencia y no se alteran (§8.9). *@
+                                <span class="text-body-secondary small">Cerrada</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -3,7 +3,10 @@
     ViewData["Title"] = "Tipo de cambio";
 }
 
-<h1 class="h3 mb-3">Tipo de cambio</h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Tipo de cambio</h1>
+    <a class="btn btn-primary" asp-action="Crear">Nuevo tipo de cambio</a>
+</div>
 
 <p class="text-body-secondary">
     Los montos oficiales se almacenan siempre en colones. El tipo de cambio se
@@ -28,6 +31,7 @@ else
                     <th scope="col" class="text-end">Colones por dólar</th>
                     <th scope="col">Vigencia</th>
                     <th scope="col">Estado</th>
+                    <th scope="col" class="text-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +48,26 @@ else
                             else
                             {
                                 <span class="badge text-bg-secondary">Inactivo</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            @if (!tipoCambio.Activo)
+                            {
+                                <form method="post" asp-action="Activar" asp-route-id="@tipoCambio.Id" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Activar</button>
+                                </form>
+                            }
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-action="Editar" asp-route-id="@tipoCambio.Id">Editar</a>
+                            @if (!tipoCambio.Activo)
+                            {
+                                <form method="post" asp-action="Eliminar" asp-route-id="@tipoCambio.Id"
+                                      class="d-inline"
+                                      data-confirmar="¿Eliminar este tipo de cambio?">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                </form>
                             }
                         </td>
                     </tr>

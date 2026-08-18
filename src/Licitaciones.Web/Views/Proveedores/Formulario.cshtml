@@ -1,0 +1,40 @@
+@model ProveedorFormulario
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar proveedor" : "Nuevo proveedor";
+    var accion = Model.EsEdicion ? "Editar" : "Crear";
+}
+
+<nav aria-label="Ruta de navegación">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Proveedores</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<partial name="_ResumenValidacion" />
+
+<form method="post" asp-action="@accion" asp-route-id="@Model.Id" class="row g-3" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div class="col-md-6">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" autocomplete="off" autofocus />
+        @* El mensaje aparece junto al campo, no en un resumen lejano (§9). *@
+        <span asp-validation-for="Nombre" class="text-danger small"></span>
+        <div class="form-text">
+            Se admiten letras, números, espacios, punto, coma y paréntesis. El nombre
+            debe ser único: no se distinguen mayúsculas ni espacios repetidos.
+        </div>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

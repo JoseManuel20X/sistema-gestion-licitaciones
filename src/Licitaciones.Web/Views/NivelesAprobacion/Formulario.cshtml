@@ -1,0 +1,48 @@
+@model NivelAprobacionFormulario
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar nivel de aprobación" : "Nuevo nivel de aprobación";
+    var accion = Model.EsEdicion ? "Editar" : "Crear";
+}
+
+<nav aria-label="Ruta de navegación">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Niveles de aprobación</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<partial name="_ResumenValidacion" />
+
+<form method="post" asp-action="@accion" asp-route-id="@Model.Id" class="row g-3" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div class="col-md-4">
+        <label asp-for="MontoMinimoCRC" class="form-label"></label>
+        <input asp-for="MontoMinimoCRC" class="form-control monto" type="number" step="0.01" min="0.01" autofocus />
+        <span asp-validation-for="MontoMinimoCRC" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="MontoMaximoCRC" class="form-label"></label>
+        <input asp-for="MontoMaximoCRC" class="form-control monto" type="number" step="0.01" min="0.01" />
+        <span asp-validation-for="MontoMaximoCRC" class="text-danger small"></span>
+        <div class="form-text">Déjelo vacío para un rango sin límite superior. Solo puede haber uno abierto.</div>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="Aprobador" class="form-label"></label>
+        <input asp-for="Aprobador" class="form-control" autocomplete="off" />
+        <span asp-validation-for="Aprobador" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

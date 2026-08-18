@@ -3,7 +3,10 @@
     ViewData["Title"] = "Niveles de aprobación";
 }
 
-<h1 class="h3 mb-3">Niveles de aprobación</h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Niveles de aprobación</h1>
+    <a class="btn btn-primary" asp-action="Crear">Nuevo nivel</a>
+</div>
 
 <p class="text-body-secondary">
     El aprobador de una adjudicación se resuelve consultando esta tabla, no con
@@ -28,6 +31,7 @@ else
                     <th scope="col" class="text-end">Monto mínimo (CRC)</th>
                     <th scope="col" class="text-end">Monto máximo (CRC)</th>
                     <th scope="col">Aprobador</th>
+                    <th scope="col" class="text-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,6 +50,16 @@ else
                             }
                         </td>
                         <td>@nivel.Aprobador</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-action="Editar" asp-route-id="@nivel.Id">Editar</a>
+                            <form method="post" asp-action="Eliminar" asp-route-id="@nivel.Id"
+                                  class="d-inline"
+                                  data-confirmar="¿Eliminar el nivel «@nivel.Aprobador»?">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                            </form>
+                        </td>
                     </tr>
                 }
             </tbody>

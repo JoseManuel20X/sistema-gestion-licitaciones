@@ -1,0 +1,57 @@
+@model LicitacionFormulario
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar licitación" : "Nueva licitación";
+    var accion = Model.EsEdicion ? "Editar" : "Crear";
+}
+
+<nav aria-label="Ruta de navegación">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Licitaciones</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<partial name="_ResumenValidacion" />
+
+<form method="post" asp-action="@accion" asp-route-id="@Model.Id" class="row g-3" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div class="col-md-4">
+        <label asp-for="Codigo" class="form-label"></label>
+        <input asp-for="Codigo" class="form-control" autocomplete="off" autofocus />
+        <span asp-validation-for="Codigo" class="text-danger small"></span>
+        <div class="form-text">Único, ignorando espacios y mayúsculas.</div>
+    </div>
+
+    <div class="col-md-8">
+        <label asp-for="Titulo" class="form-label"></label>
+        <input asp-for="Titulo" class="form-control" autocomplete="off" />
+        <span asp-validation-for="Titulo" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="PresupuestoEstimadoCRC" class="form-label"></label>
+        <input asp-for="PresupuestoEstimadoCRC" class="form-control monto" type="number" step="0.01" min="0.01" />
+        <span asp-validation-for="PresupuestoEstimadoCRC" class="text-danger small"></span>
+        <div class="form-text">Mayor que cero. No puede quedar por debajo de una oferta ya registrada.</div>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="FechaCierre" class="form-label"></label>
+        @* Control de calendario y hora, no texto libre (§8.2). *@
+        <input asp-for="FechaCierre" class="form-control" type="datetime-local" />
+        <span asp-validation-for="FechaCierre" class="text-danger small"></span>
+        <div class="form-text">Debe ser futura al publicar. Hora de Costa Rica.</div>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

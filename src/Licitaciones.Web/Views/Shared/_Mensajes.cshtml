@@ -1,0 +1,21 @@
+@*
+    Banner de mensajes de éxito y error tras una redirección (enunciado §9).
+    Se muestra en el layout para que cualquier pantalla lo herede sin repetirlo.
+*@
+
+@if (TempData["MensajeExito"] is string exito && !string.IsNullOrWhiteSpace(exito))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @exito
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+@if (TempData["MensajeError"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    @* role="alert" hace que los lectores de pantalla lo anuncien al aparecer. *@
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @error
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
