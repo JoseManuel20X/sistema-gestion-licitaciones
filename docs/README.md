@@ -43,8 +43,8 @@ desarrollado con Extreme Programming (XP) como única metodología.
 |---|---|---|
 | [Pruebas](pruebas.md) | Estrategia de pruebas, ejecución y cobertura. | ✅ |
 | [API](api.md) | Endpoints, ejemplos de solicitud/respuesta y errores. | ✅ |
-| Docker | Construcción y ejecución con Docker Compose. | ⏳ Iteración 4 |
-| Kubernetes | Despliegue, probes y persistencia en Kubernetes. | ⏳ Iteración 4 |
+| [Docker](docker.md) | Construcción y ejecución con Docker Compose. | ✅ |
+| [Kubernetes](kubernetes.md) | Despliegue, probes y persistencia en Kubernetes. | ✅ |
 
 > Los documentos se crean y actualizan en la iteración en la que su funcionalidad
 > se implementa, siguiendo la práctica XP de documentar lo que existe y no diseño
