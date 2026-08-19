@@ -1,6 +1,7 @@
 using System.Globalization;
 using Licitaciones.Application;
 using Licitaciones.Infrastructure;
+using Licitaciones.Infrastructure.Persistencia;
 using Licitaciones.Web.Infraestructura;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,12 @@ var cadenaConexion = builder.Configuration.GetConnectionString("Licitaciones")
 
 builder.Services.AgregarAplicacion();
 builder.Services.AgregarInfraestructura(cadenaConexion);
+
+// Comprobación de salud que verifica también la base de datos: un pod que
+// responde pero no alcanza PostgreSQL no está listo para recibir tráfico. La
+// usan la readinessProbe de Kubernetes y el health check de Compose (§13).
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<LicitacionesDbContext>("postgresql");
 
 builder.Services.AddControllersWithViews(opciones =>
     // Debe ir primero para tener prioridad sobre el enlazador de decimales que
@@ -35,12 +42,21 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = [culturaCostaRica],
 });
 
-// Migraciones y semilla al arrancar, igual que la API, para que levantar la
-// solución no requiera pasos manuales. La operación es idempotente: el segundo
-// proceso en arrancar encuentra el trabajo ya hecho.
-// En Kubernetes esto se moverá a un Job, para que varias réplicas no compitan
-// por aplicar la misma migración.
-if (!app.Environment.IsEnvironment("Testing"))
+// Modo «migrar y salir», que usa el Job de Kubernetes: aplica las migraciones y
+// la semilla, y termina sin levantar el servidor. Así una sola ejecución prepara
+// la base y las réplicas arrancan con el esquema ya listo, en vez de competir
+// entre ellas por aplicar la misma migración.
+if (args.Contains("--solo-migrar", StringComparer.Ordinal))
+{
+    await app.Services.MigrarYSembrarAsync();
+    return;
+}
+
+// Fuera de Kubernetes se migra al arrancar para que `docker compose up --build`
+// no requiera pasos manuales. La operación es idempotente. En Kubernetes se
+// desactiva por configuración y lo hace el Job.
+var migrarAlArrancar = app.Configuration.GetValue("Migraciones:AplicarAlArrancar", true);
+if (migrarAlArrancar && !app.Environment.IsEnvironment("Testing"))
 {
     await app.Services.MigrarYSembrarAsync();
 }
@@ -54,6 +70,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+app.MapHealthChecks("/salud");
 
 app.MapControllerRoute(
     name: "default",

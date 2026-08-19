@@ -81,10 +81,19 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-// Las migraciones y la semilla se aplican al arrancar para que
-// `docker compose up --build` deje el sistema listo sin pasos manuales.
-// En Kubernetes conviene moverlo a un Job para que no compitan las réplicas.
-if (!app.Environment.IsEnvironment("Testing"))
+// Modo «migrar y salir», que usa el Job de Kubernetes: prepara la base y termina
+// sin levantar el servidor, de modo que las réplicas no compitan por aplicar la
+// misma migración.
+if (args.Contains("--solo-migrar", StringComparer.Ordinal))
+{
+    await app.Services.MigrarYSembrarAsync();
+    return;
+}
+
+// Fuera de Kubernetes se migra al arrancar para que `docker compose up --build`
+// deje el sistema listo sin pasos manuales. Es idempotente.
+var migrarAlArrancar = app.Configuration.GetValue("Migraciones:AplicarAlArrancar", true);
+if (migrarAlArrancar && !app.Environment.IsEnvironment("Testing"))
 {
     await app.Services.MigrarYSembrarAsync();
 }
