@@ -1,0 +1,60 @@
+# Job de migraciones (enunciado §13.2: «migraciones ejecutadas de forma
+# controlada»).
+#
+# Por qué un Job y no dejarlo en el arranque de cada réplica: con más de una
+# réplica, todas intentarían aplicar la misma migración a la vez y una fallaría.
+# El Job lo hace una sola vez, antes de que las réplicas sirvan tráfico, y deja
+# constancia de su resultado.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: licitaciones-migraciones
+  namespace: licitaciones
+  labels:
+    app.kubernetes.io/name: licitaciones
+    app.kubernetes.io/component: migraciones
+spec:
+  # Si falla, se reintenta: lo más común es que PostgreSQL aún no acepte
+  # conexiones, y el siguiente intento la encuentra lista.
+  backoffLimit: 6
+  # Se conserva media hora tras terminar para poder revisar sus logs como
+  # evidencia, y luego se limpia solo.
+  ttlSecondsAfterFinished: 1800
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: licitaciones
+        app.kubernetes.io/component: migraciones
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migraciones
+          image: licitaciones-web:local
+          imagePullPolicy: IfNotPresent
+          # Aplica migraciones y semilla, y termina sin levantar el servidor.
+          args: ["--solo-migrar"]
+          envFrom:
+            - configMapRef:
+                name: licitaciones-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: licitaciones-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: licitaciones-secret
+                  key: POSTGRES_PASSWORD
+            # La cadena se arma aquí uniendo ConfigMap y Secret, de modo que la
+            # contraseña nunca aparezca en un manifiesto versionado.
+            - name: ConnectionStrings__Licitaciones
+              value: "Host=$(POSTGRES_HOST);Port=$(POSTGRES_PORT);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

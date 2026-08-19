@@ -1,0 +1,22 @@
+# Servicio de la aplicación web (enunciado §13.2).
+apiVersion: v1
+kind: Service
+metadata:
+  name: licitaciones-web
+  namespace: licitaciones
+  labels:
+    app.kubernetes.io/name: licitaciones
+    app.kubernetes.io/component: web
+spec:
+  # NodePort para poder abrir la aplicación desde el navegador en un clúster
+  # local sin instalar un Ingress. En un entorno real sería ClusterIP detrás de
+  # un Ingress con TLS.
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: licitaciones
+    app.kubernetes.io/component: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30080

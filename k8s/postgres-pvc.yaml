@@ -1,0 +1,19 @@
+# Volumen persistente de PostgreSQL (enunciado §13.2).
+#
+# Se declara por separado y no dentro de volumeClaimTemplates del StatefulSet a
+# propósito: así borrar y recrear el StatefulSet no destruye los datos, que es
+# justo lo que hay que demostrar al reiniciar.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: licitaciones-postgres-datos
+  namespace: licitaciones
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  accessModes:
+    # Una sola réplica de PostgreSQL escribe en el volumen; no se comparte.
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

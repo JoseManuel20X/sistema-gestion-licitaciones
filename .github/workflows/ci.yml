@@ -112,9 +112,9 @@ jobs:
           fi
 
   imagen-docker:
-    name: Construir imagen de Docker
+    name: Construir imágenes de Docker
     runs-on: ubuntu-latest
-    # Sin sentido construir la imagen si el código no compila o las pruebas fallan.
+    # Sin sentido construir las imágenes si el código no compila o las pruebas fallan.
     needs: compilar-y-probar
 
     steps:
@@ -134,5 +134,43 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Construir la imagen de la interfaz web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Licitaciones.Web/Dockerfile
+          push: false
+          tags: licitaciones-web:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Verificar que Compose es válido
         run: docker compose config --quiet
+
+  manifiestos-kubernetes:
+    name: Validar manifiestos de Kubernetes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Validar contra el esquema de Kubernetes
+        # kubeconform valida sin necesidad de un clúster: comprueba que cada
+        # manifiesto cumple el esquema de su versión de API. La opción -strict
+        # rechaza campos desconocidos, que es como se detectan las erratas en
+        # los nombres de propiedades.
+        run: |
+          docker run --rm -v "${{ github.workspace }}/k8s:/manifiestos" \
+            ghcr.io/yannh/kubeconform:latest \
+            -strict -summary -kubernetes-version 1.31.0 /manifiestos
+
+      - name: Comprobar que no se versiona ningún secreto real
+        # El §11 prohíbe credenciales en el repositorio: solo debe existir la
+        # plantilla de ejemplo.
+        run: |
+          if [ -f k8s/app-secret.yaml ]; then
+            echo "::error::k8s/app-secret.yaml no debe versionarse; use app-secret.example.yaml"
+            exit 1
+          fi
+          echo "Solo existe la plantilla app-secret.example.yaml"

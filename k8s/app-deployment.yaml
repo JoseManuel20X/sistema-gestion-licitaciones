@@ -1,0 +1,98 @@
+# Aplicación web (enunciado §13.2).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: licitaciones-web
+  namespace: licitaciones
+  labels:
+    app.kubernetes.io/name: licitaciones
+    app.kubernetes.io/component: web
+spec:
+  # Dos réplicas para demostrar que la aplicación no guarda estado en memoria y
+  # que las migraciones no se aplican por réplica.
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: licitaciones
+      app.kubernetes.io/component: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Ninguna réplica se retira antes de que la nueva esté lista: el servicio
+      # no se interrumpe durante una actualización.
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: licitaciones
+        app.kubernetes.io/component: web
+    spec:
+      securityContext:
+        # Coincide con el usuario sin privilegios que crea el Dockerfile.
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+      containers:
+        - name: web
+          image: licitaciones-web:local
+          # IfNotPresent permite usar la imagen construida en local sin registro,
+          # que es como se demuestra el despliegue en el clúster de desarrollo.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: licitaciones-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: licitaciones-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: licitaciones-secret
+                  key: POSTGRES_PASSWORD
+            - name: ConnectionStrings__Licitaciones
+              value: "Host=$(POSTGRES_HOST);Port=$(POSTGRES_PORT);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)"
+
+          # Las tres probes que pide el §13.2, cada una con su función:
+          #
+          # startup  — da margen al arranque; hasta que no pasa, las otras dos no
+          #            se evalúan, así un inicio lento no se confunde con un fallo.
+          # readiness— decide si el pod recibe tráfico. Comprueba también la base
+          #            de datos: un pod que responde pero no la alcanza no sirve.
+          # liveness — decide si hay que reiniciar el pod. Solo mira que el
+          #            proceso responda, sin depender de la base: si PostgreSQL
+          #            cae, reiniciar la aplicación no arregla nada y solo
+          #            provocaría un ciclo de reinicios.
+          startupProbe:
+            httpGet:
+              path: /salud
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /salud
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi

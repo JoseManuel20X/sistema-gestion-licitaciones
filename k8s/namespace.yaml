@@ -1,0 +1,9 @@
+# Espacio de nombres propio: aísla los recursos del proyecto del resto del
+# clúster y permite borrarlo todo de una vez al terminar la demostración.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: licitaciones
+  labels:
+    app.kubernetes.io/name: licitaciones
+    app.kubernetes.io/part-of: sistema-licitaciones

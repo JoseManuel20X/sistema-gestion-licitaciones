@@ -1,0 +1,19 @@
+# Servicio interno de PostgreSQL. No se expone fuera del clúster: solo la
+# aplicación lo necesita.
+apiVersion: v1
+kind: Service
+metadata:
+  name: licitaciones-postgres
+  namespace: licitaciones
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  # Sin ClusterIP: el StatefulSet necesita un servicio «headless» para dar a cada
+  # pod un nombre de red estable.
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

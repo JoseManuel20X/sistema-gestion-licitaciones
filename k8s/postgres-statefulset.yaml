@@ -1,0 +1,93 @@
+# PostgreSQL como StatefulSet (enunciado §13.2).
+#
+# Se usa StatefulSet y no Deployment porque la base tiene identidad y estado: su
+# nombre de red debe ser estable y su volumen no puede intercambiarse entre pods.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: licitaciones-postgres
+  namespace: licitaciones
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  serviceName: licitaciones-postgres
+  # Una sola réplica: PostgreSQL no se escala horizontalmente sin replicación,
+  # que queda fuera del alcance del proyecto.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+    spec:
+      securityContext:
+        # Usuario postgres de la imagen oficial; no se ejecuta como root.
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: licitaciones-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: licitaciones-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: licitaciones-secret
+                  key: POSTGRES_PASSWORD
+            # La imagen monta el volumen en /var/lib/postgresql/data, que en
+            # algunos proveedores contiene un lost+found que impide inicializar.
+            # Un subdirectorio evita ese fallo.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/postgresql/data
+          # Las probes pasan por un shell a propósito: Kubernetes expande $(VAR)
+          # en command y args del contenedor, pero NO dentro de los comandos exec
+          # de las probes. Sin el shell, pg_isready recibía el literal
+          # «$(POSTGRES_USER)» y el pod entraba en ciclo de reinicios.
+          #
+          # Startup probe: da margen a la primera inicialización, que crea la
+          # base y puede tardar. Hasta que no pase, no se evalúan las otras.
+          startupProbe:
+            exec:
+              command: ["sh", "-c", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: licitaciones-postgres-datos
